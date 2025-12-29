@@ -11,7 +11,7 @@
 set -e
 
 # ================= 配置区域 =================
-GITHUB_REPO="Catker/lotspeed"
+GITHUB_REPO="liuganquan/lotspeed"
 GITHUB_BRANCH="ml-tcp"
 INSTALL_DIR="/opt/lotspeed"
 MODULE_NAME="lotspeed"

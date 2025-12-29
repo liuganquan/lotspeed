@@ -1,7 +1,7 @@
 ### lotspeed ml-tcp
 
 <div align=center>
-    <img src="https://github.com/Catker/lotspeed/blob/ml-tcp/logo.png" width="400" height="400" />
+    <img src="https://github.com/liuganquan/lotspeed/blob/ml-tcp/logo.png" width="400" height="400" />
 </div>
 
 
@@ -15,9 +15,9 @@
 
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Catker/lotspeed/ml-tcp/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/liuganquan/lotspeed/ml-tcp/install.sh | sudo bash
 #   or
-wget -qO- https://raw.githubusercontent.com/Catker/lotspeed/ml-tcp/install.sh | sudo bash
+wget -qO- https://raw.githubusercontent.com/liuganquan/lotspeed/ml-tcp/install.sh | sudo bash
 ```
 
 
