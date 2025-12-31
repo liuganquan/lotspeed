@@ -265,3 +265,4 @@ $RECYCLE.BIN/
 
 /dkms.conf
 /dkms.tar.gz
+.ace-tool/

@@ -24,14 +24,14 @@
  * 内核版本兼容性检测：cong_control 回调签名变化
  * 注意：Debian 等发行版可能使用 backport 内核头文件，需要根据实际内核版本判断
  *
- * 签名历史：
- * - Linux < 5.5:   4 参数 (sk, ack, flag, rs)   [commit 40570375356c 之前]
- * - Linux 5.5-6.17: 2 参数 (sk, rs)             [commit 40570375356c]
- * - Linux >= 6.18:  4 参数 (sk, ack, flag, rs)  [恢复为 4 参数]
+ * 签名历史（以主线为参考，发行版可能回移/回补丁）：
+ * - Linux < 5.5:    4 参数 (sk, ack, flag, rs)   [commit 40570375356c 之前]
+ * - Linux 5.5-6.11: 2 参数 (sk, rs)             [commit 40570375356c]
+ * - Linux >= 6.12:  4 参数 (sk, ack, flag, rs)  [Debian 13 6.12 头文件为该签名]
  */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
 #define LOTSPEED_CONG_CONTROL_4_ARGS
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 18, 0)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 #define LOTSPEED_CONG_CONTROL_4_ARGS
 #endif
 
@@ -41,7 +41,7 @@
     } \
 } while (0)
 
-#define SAFE_DIV64(n, d) ((d) ? div64_u64((n), (d)) : 0)
+#define SAFE_DIV64(n, d) ((d) ? div64_u64((n), (d)) : 0ULL)
 
 #define LOTSPEED_BETA_SCALE 1024
 #define LOTSPEED_PROBE_RTT_INTERVAL_MS 10000
@@ -269,7 +269,11 @@ static void lotspeed_init(struct sock *sk)
                     hist->sample_cnt >= lotserver_hist_min_samples &&
                     hist->rtt_min_us > 0) {
                     ca->rtt_min = hist->rtt_min_us;
-                    tp->snd_cwnd = clamp_t(u32, hist->rtt_min_us ? SAFE_DIV64(hist->bw_bytes_sec * hist->rtt_min_us, (u64)tp->mss_cache * 1000000ULL) : lotserver_min_cwnd,
+                    tp->snd_cwnd = clamp_t(u32,
+                                           (u32)(hist->rtt_min_us ?
+                                                 SAFE_DIV64(hist->bw_bytes_sec * hist->rtt_min_us,
+                                                           (u64)tp->mss_cache * 1000000ULL) :
+                                                 (u64)lotserver_min_cwnd),
                                            lotserver_min_cwnd, lotserver_max_cwnd);
                     ca->ss_mode = false;
                     ca->state = FAST_CA;
@@ -507,13 +511,14 @@ out_pacing:
 }
 
 #ifdef LOTSPEED_CONG_CONTROL_4_ARGS
-/* Linux < 5.5 或 Linux >= 6.18: 4 参数签名 */
+/* Linux < 5.5 或 Linux >= 6.12: 4 参数签名 */
 static void lotspeed_cong_control(struct sock *sk, u32 ack, int flag, const struct rate_sample *rs)
 {
+    (void)ack;
     lotspeed_adapt_and_control(sk, rs, flag);
 }
 #else
-/* Linux 5.5 - 6.17: 2 参数签名 */
+/* Linux 5.5 - 6.11: 2 参数签名 */
 static void lotspeed_cong_control(struct sock *sk, const struct rate_sample *rs)
 {
     lotspeed_adapt_and_control(sk, rs, 0);
